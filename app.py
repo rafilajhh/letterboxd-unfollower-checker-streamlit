@@ -61,14 +61,14 @@ async def get_user_list(username, tab, max_pages):
                     user_list.append(user_lb)
     return user_list
 
-# === Optimalisasi: Gabungkan semua async ke dalam 1 fungsi ===
+
 async def main_async(username):
     max_pages = await get_profile_data(username)
     followers = await get_user_list(username, "followers", max_pages)
     following = await get_user_list(username, "following", max_pages)
     return followers, following
 
-# === Streamlit UI ===
+
 st.title("🎬 Letterboxd Unfollower Checker")
 st.write("**Use this tool to automatically compare your following and followers lists, and get a complete list of users who don't follow you back.**")
 
