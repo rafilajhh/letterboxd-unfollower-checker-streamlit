@@ -37,7 +37,7 @@ async def get_profile_data(username):
 
     followers = get_count("followers")
     following = get_count("following")
-    max_pages = max(followers, following)/26
+    max_pages = max(followers, following) / 25
     return int(max_pages) + 1
 
 async def get_user_list(username, tab, max_pages):
@@ -72,14 +72,14 @@ async def main_async(username):
 st.title("🎬 Letterboxd Unfollower Checker")
 st.write("**Use this tool to automatically compare your following and followers lists, and get a complete list of users who don't follow you back.**")
 
-username = st.text_input("Letterboxd username: ")
+username = st.text_input("Letterboxd username: ").strip()
 
 _, middle, _ = st.columns(3)
 check_button = middle.button("Check now!", use_container_width=True)
 
 if check_button and username:
     with st.status(f"Fetching account data for '{username}'...", expanded=True) as status:
-        with st.spinner("Fetching followers and following..."):
+        with st.spinner("Fetching followers and following...", show_time=True):
             followers, following = asyncio.run(main_async(username))
 
         status.update(label="Data loaded successfully!", state="complete", expanded=False)
@@ -124,4 +124,5 @@ if check_button and username:
             st.success("You follow back everyone who follows you! 👍")
 
     st.divider()
-    st.markdown("**Made by:** [rafilajhh](https://letterboxd.com/rafilajhh/)")
+    st.markdown("🐞 Found a bug? Contact me — **Made by [rafilajhh](https://letterboxd.com/rafilajhh/)**")
+
