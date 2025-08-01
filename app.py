@@ -31,7 +31,7 @@ async def get_profile_data(username):
     soup = BeautifulSoup(html, "html.parser")
 
     def get_count(tab):
-        selector = f'a[href="/{username}/{tab}/"] > span.value'
+        selector = f'a[href="/{username.lower()}/{tab}/"] > span.value'
         tag = soup.select_one(selector)
         return int(tag.text.replace(',', '')) if tag else 0
 
