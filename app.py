@@ -111,6 +111,8 @@ if check_button and username:
             st.caption("People you follow, but they don’t follow you")
             for i, user in enumerate(unfollowers, start=1):
                 st.write(f"{i}. {user} : https://letterboxd.com/{user}/")
+        elif not followers and not following:
+            st.warning("You don't follow anyone and no one follows you.")
         else:
             st.success("Everyone you follow also follows you back! 🎉")
 
@@ -120,9 +122,11 @@ if check_button and username:
             st.caption("People who follow you, but you don’t follow them")
             for i, user in enumerate(unfollowing, start=1):
                 st.write(f"{i}. {user} : https://letterboxd.com/{user}/")
+        elif not followers and not following:
+            st.warning("You don't follow anyone and no one follows you.")
         else:
             st.success("You follow back everyone who follows you! 👍")
 
     st.divider()
-    st.markdown("🐞 Found a bug? Contact me — **Made by [rafilajhh](https://letterboxd.com/rafilajhh/)**")
+    st.markdown("🐞 Found a bug? Contact me — Made by [rafilajhh](https://letterboxd.com/rafilajhh/)")
 
