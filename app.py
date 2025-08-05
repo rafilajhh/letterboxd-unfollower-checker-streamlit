@@ -6,6 +6,8 @@ import nest_asyncio
 
 nest_asyncio.apply()
 
+semaphore = asyncio.Semaphore(5)
+
 async def fetch_page(session, url):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
@@ -14,17 +16,35 @@ async def fetch_page(session, url):
         "Referer": "https://letterboxd.com/",
         "Connection": "keep-alive"
     }
-    async with session.get(url, headers=headers, timeout=30) as response:
-        return await response.text()
-    
+
+    timeout = aiohttp.ClientTimeout(total=60)
+    async with semaphore:
+        try:
+            async with session.get(url, headers=headers, timeout=timeout) as response:
+                if response.status != 200:
+                    print(f"Gagal fetch {url}, status: {response.status}")
+                    return ""
+                print(f"✅ Fetched: {url}")
+                return await response.text()
+        except asyncio.TimeoutError:
+            print(f"Timeout saat fetch: {url}")
+            return ""
+        except Exception as e:
+            print(f"Error saat fetch {url}: {e}")
+            return ""
+
 async def get_profile_data(username):
     url = f"https://letterboxd.com/{username}/"
     headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Accept-Language": "en-US,en;q=0.9"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Referer": "https://letterboxd.com/",
+        "Connection": "keep-alive"
     }
 
-    async with aiohttp.ClientSession() as session:
+    timeout = aiohttp.ClientTimeout(total=30)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
         async with session.get(url, headers=headers) as response:
             html = await response.text()
 
@@ -50,6 +70,8 @@ async def get_user_list(username, tab, max_pages):
     async with aiohttp.ClientSession() as session:
         htmls = await asyncio.gather(*[fetch_page(session, url) for url in urls])
         for html in htmls:
+            if not html:
+                continue
             soup = BeautifulSoup(html, "html.parser")
             user_blocks = soup.select("div.person-summary")
             if not user_blocks:
@@ -60,7 +82,6 @@ async def get_user_list(username, tab, max_pages):
                     user_lb = avatar_tag["href"].strip("/")
                     user_list.append(user_lb)
     return user_list
-
 
 async def main_async(username):
     max_pages = await get_profile_data(username)
@@ -80,7 +101,9 @@ check_button = middle.button("Check now!", use_container_width=True)
 if check_button and username:
     with st.status(f"Fetching account data for '{username}'...", expanded=True) as status:
         with st.spinner("Fetching followers and following...", show_time=True):
-            followers, following = asyncio.run(main_async(username))
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            followers, following = loop.run_until_complete(main_async(username))
 
         status.update(label="Data loaded successfully!", state="complete", expanded=False)
 
@@ -129,4 +152,3 @@ if check_button and username:
 
     st.divider()
     st.markdown("🐞 Found a bug? Contact me — Made by [rafilajhh](https://letterboxd.com/rafilajhh/)")
-
