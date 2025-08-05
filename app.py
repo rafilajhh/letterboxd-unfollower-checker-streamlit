@@ -55,17 +55,22 @@ async def get_profile_data(username):
         tag = soup.select_one(selector)
         return int(tag.text.replace(',', '')) if tag else 0
 
-    followers = get_count("followers")
-    following = get_count("following")
-    max_pages = max(followers, following) / 25
-    return int(max_pages) + 1
+    max_pages_followers = int(get_count("followers") / 25) + 1
+    max_pages_following = int(get_count("following") / 25) + 1
+    return max_pages_followers, max_pages_following
 
-async def get_user_list(username, tab, max_pages):
-    urls = [
-        f"https://letterboxd.com/{username}/{tab}/page/{page}/"
-        for page in range(1, max_pages + 1)
-    ]
-    
+async def get_user_list(username, tab,  max_pages_followers, max_pages_following):
+    if tab == "followers":
+        urls = [
+            f"https://letterboxd.com/{username}/{tab}/page/{page}/"
+            for page in range(1, max_pages_followers + 1)
+        ]
+    else:
+        urls = [
+            f"https://letterboxd.com/{username}/{tab}/page/{page}/"
+            for page in range(1, max_pages_following + 1)
+        ]
+
     user_list = []
     async with aiohttp.ClientSession() as session:
         htmls = await asyncio.gather(*[fetch_page(session, url) for url in urls])
@@ -84,9 +89,10 @@ async def get_user_list(username, tab, max_pages):
     return user_list
 
 async def main_async(username):
-    max_pages = await get_profile_data(username)
-    followers = await get_user_list(username, "followers", max_pages)
-    following = await get_user_list(username, "following", max_pages)
+    max_pages_followers, max_pages_following = await get_profile_data(username)
+    print("max_pages_followers :",max_pages_followers, "max_pages_following :", max_pages_following)
+    followers = await get_user_list(username, "followers", max_pages_followers, max_pages_following)
+    following = await get_user_list(username, "following", max_pages_followers, max_pages_following)
     return followers, following
 
 
