@@ -24,7 +24,7 @@ async def fetch_page(session, url):
                 if response.status != 200:
                     print(f"Gagal fetch {url}, status: {response.status}")
                     return ""
-                print(f"✅ Fetched: {url}")
+                print(f"Fetched: {url}")
                 return await response.text()
         except asyncio.TimeoutError:
             print(f"Timeout saat fetch: {url}")
