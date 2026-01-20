@@ -1,4 +1,4 @@
 streamlit
 bs4
-aiohttp
+curl_cffi
 nest_asyncio
