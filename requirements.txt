@@ -2,3 +2,4 @@ streamlit
 bs4
 curl_cffi
 nest_asyncio
+streamlit_analytics2
