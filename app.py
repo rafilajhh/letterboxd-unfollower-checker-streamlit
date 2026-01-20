@@ -1,52 +1,43 @@
 import streamlit as st
 from bs4 import BeautifulSoup
-import aiohttp
+from curl_cffi.requests import AsyncSession
 import asyncio
 import nest_asyncio
+import random
 
 nest_asyncio.apply()
 
 semaphore = asyncio.Semaphore(5)
 
 async def fetch_page(session, url):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Referer": "https://letterboxd.com/",
-        "Connection": "keep-alive"
-    }
-
-    timeout = aiohttp.ClientTimeout(total=60)
+    timeout = 30
     async with semaphore:
         try:
-            async with session.get(url, headers=headers, timeout=timeout) as response:
-                if response.status != 200:
-                    print(f"Gagal fetch {url}, status: {response.status}")
-                    return ""
-                print(f"Fetched: {url}")
-                return await response.text()
-        except asyncio.TimeoutError:
-            print(f"Timeout saat fetch: {url}")
-            return ""
+            await asyncio.sleep(random.uniform(0.5, 1.5))
+            
+            response = await session.get(url, timeout=timeout)
+            
+            if response.status_code != 200:
+                print(f"Gagal fetch {url}, status: {response.status_code}")
+                return ""
+            
+            print(f"Fetched: {url}")
+            return response.text
+            
         except Exception as e:
             print(f"Error saat fetch {url}: {e}")
             return ""
 
 async def get_profile_data(username):
     url = f"https://letterboxd.com/{username}/"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Referer": "https://letterboxd.com/",
-        "Connection": "keep-alive"
-    }
-
-    timeout = aiohttp.ClientTimeout(total=30)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        async with session.get(url, headers=headers) as response:
-            html = await response.text()
+    
+    async with AsyncSession(impersonate="chrome") as session:
+        response = await session.get(url, timeout=30)
+        
+        if response.status_code != 200:
+            return 0, 0 
+            
+        html = response.text
 
     soup = BeautifulSoup(html, "html.parser")
 
@@ -72,7 +63,7 @@ async def get_user_list(username, tab,  max_pages_followers, max_pages_following
         ]
 
     user_list = []
-    async with aiohttp.ClientSession() as session:
+    async with AsyncSession(impersonate="chrome") as session:
         htmls = await asyncio.gather(*[fetch_page(session, url) for url in urls])
         for html in htmls:
             if not html:
