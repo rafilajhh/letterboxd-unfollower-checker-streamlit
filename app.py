@@ -4,7 +4,6 @@ from curl_cffi.requests import AsyncSession
 import asyncio
 import nest_asyncio
 import random
-import streamlit_analytics2 as streamlit_analytics
 
 nest_asyncio.apply()
 
@@ -91,9 +90,7 @@ async def main_async(username):
 st.title("🎬 Letterboxd Unfollower Checker")
 st.write("**Use this tool to automatically compare your following and followers lists, and get a complete list of users who don't follow you back.**")
 
-streamlit_analytics.start_tracking()
 username = st.text_input("Letterboxd username: ").strip()
-streamlit_analytics.stop_tracking()
 
 _, middle, _ = st.columns(3)
 check_button = middle.button("Check now!", use_container_width=True)
