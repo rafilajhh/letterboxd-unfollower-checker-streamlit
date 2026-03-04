@@ -21,7 +21,6 @@ async def fetch_page(session, url):
                 print(f"Gagal fetch {url}, status: {response.status_code}")
                 return ""
             
-            print(f"Fetched: {url}")
             return response.text
             
         except Exception as e:
