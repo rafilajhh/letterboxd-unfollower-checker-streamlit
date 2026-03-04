@@ -113,7 +113,7 @@ if check_button and username:
         unfollowers = list(set_following - set_followers)
         unfollowing = list(set_followers - set_following)
 
-        if followers != len(followers_list) or following != len(following_list):
+        if abs(followers - len(followers_list)) > 5 or abs(following - len(following_list)) > 5:
             st.warning("Letterboxd website might down or this tool is blocked by Letterboxd. Please try again later.")
         else:
             st.subheader(f"{username.title()}'s Profile:")
