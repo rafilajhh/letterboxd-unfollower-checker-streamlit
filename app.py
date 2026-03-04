@@ -81,7 +81,7 @@ async def get_user_list(username, tab,  max_pages_followers, max_pages_following
     return user_list
 
 async def main_async(username, max_pages_followers=0, max_pages_following=0):
-    print("max_pages_followers :",max_pages_followers, "max_pages_following :", max_pages_following)
+    print(f"Processing username: {username}, max_pages_followers: {max_pages_followers}, max_pages_following: {max_pages_following}")
     followers_list = await get_user_list(username, "followers", max_pages_followers, max_pages_following)
     following_list = await get_user_list(username, "following", max_pages_followers, max_pages_following)
     return followers_list, following_list
