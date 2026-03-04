@@ -46,9 +46,11 @@ async def get_profile_data(username):
         tag = soup.select_one(selector)
         return int(tag.text.replace(',', '')) if tag else 0
 
-    max_pages_followers = int(get_count("followers") / 25) + 1
-    max_pages_following = int(get_count("following") / 25) + 1
-    return max_pages_followers, max_pages_following
+    followers = get_count("followers")
+    following = get_count("following")
+    max_pages_followers = int(followers / 25) + 1
+    max_pages_following = int   (following / 25) + 1
+    return max_pages_followers, max_pages_following, followers, following
 
 async def get_user_list(username, tab,  max_pages_followers, max_pages_following):
     if tab == "followers":
@@ -79,12 +81,11 @@ async def get_user_list(username, tab,  max_pages_followers, max_pages_following
                     user_list.append(user_lb)
     return user_list
 
-async def main_async(username):
-    max_pages_followers, max_pages_following = await get_profile_data(username)
+async def main_async(username, max_pages_followers=0, max_pages_following=0):
     print("max_pages_followers :",max_pages_followers, "max_pages_following :", max_pages_following)
-    followers = await get_user_list(username, "followers", max_pages_followers, max_pages_following)
-    following = await get_user_list(username, "following", max_pages_followers, max_pages_following)
-    return followers, following
+    followers_list = await get_user_list(username, "followers", max_pages_followers, max_pages_following)
+    following_list = await get_user_list(username, "following", max_pages_followers, max_pages_following)
+    return followers_list, following_list
 
 
 st.title("🎬 Letterboxd Unfollower Checker")
@@ -96,16 +97,15 @@ _, middle, _ = st.columns(3)
 check_button = middle.button("Check now!", use_container_width=True)
 
 if check_button and username:
+    max_pages_followers, max_pages_following, followers, following = asyncio.run(get_profile_data(username))
     with st.status(f"Fetching account data for '{username}'...", expanded=True) as status:
         with st.spinner("Fetching followers and following...", show_time=True):
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            followers, following = loop.run_until_complete(main_async(username))
+            followers_list, following_list = asyncio.run(main_async(username, max_pages_followers, max_pages_following))
 
         status.update(label="Data loaded successfully!", state="complete", expanded=False)
 
-    set_followers = set(followers)
-    set_following = set(following)
+    set_followers = set(followers_list)
+    set_following = set(following_list)
 
     unfollowers = list(set_following - set_followers)
     unfollowing = list(set_followers - set_following)
@@ -113,10 +113,9 @@ if check_button and username:
     st.subheader(f"{username.title()}'s Profile:")
     col1, col2 = st.columns(2)
     with col1:
-        st.write(f"- 🚀 **Following**: {len(following)}")
+        st.write(f"- 🚀 **Following**: {following}")
     with col2:
-        st.write(f"- 🎟️ **Followers**: {len(followers)}")
-
+        st.write(f"- 🎟️ **Followers**: {followers}")
     col3, col4 = st.columns(2)
     with col3:
         st.write(f"- 😒 **Doesn't Follow You Back**: {len(unfollowers)}")
